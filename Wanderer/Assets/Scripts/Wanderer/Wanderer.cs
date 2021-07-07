@@ -12,14 +12,23 @@ public class Wanderer : MonoBehaviour
     {
         _agent = gameObject.GetComponent<NavMeshAgent>();
         _memoryMap = GameObject.FindGameObjectWithTag("Terrain").GetComponent<TerrainGenerator>().Cells;
-        //Time.timeScale = 10;
     }
 
     void Update()
     {
-        if(_agent.velocity.magnitude < 0.2f)
-            _agent.SetDestination(RandomNavSphere(20));
-    }
+		if (_agent.velocity.magnitude < 0.2f)
+			_agent.SetDestination(RandomNavSphere(20));
+
+		//if (Input.GetMouseButtonDown(1))
+		//{
+		//    RaycastHit hit;
+
+		//    if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity))
+		//    {
+		//        _agent.SetDestination(hit.point);
+		//    }
+		//}
+	}
 
     private Vector3 RandomDestination(float radius)
     {
@@ -56,6 +65,7 @@ public class Wanderer : MonoBehaviour
 
 	public void OnTriggerStay(Collider other)
 	{
-        other.gameObject.GetComponent<Cell>().IncreaseMemoryPersistance();
+        other.gameObject.GetComponent<Cell>().IncreaseMemoryPersistence();
+        other.gameObject.GetComponent<Cell>().IncreaseHeatScale();
 	}
 }

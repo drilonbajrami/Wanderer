@@ -5,42 +5,42 @@ using UnityEngine.UI;
 
 public class Cell : MonoBehaviour
 {
+	public Gradient heatMapGradient;
 	private (int, int) index;
 	public (int, int) Index => index;
 
-	public GameObject agent;
 	private SpriteRenderer overlay;
+	private SpriteRenderer heatOverlay;
 	private List<Cell> neighbours = new List<Cell>();
 
 	private float overlayAlpha = 1.0f;
+	private float heatScale = 0.0f;
+	private float memoryPersistence = 1.0f;
 
-	public bool isWater = false;
-	[SerializeField] private float memoryPersistance = 1.0f;
+	[HideInInspector] public bool isWater = false;
+	public float MemoryPersistence => memoryPersistence;
+
+	private float learnRate = 30.0f;
+	private float heatRate = 0.0003f;
 
 	private void Start()
 	{
 		overlay = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
+		heatOverlay = gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>();
 		overlay.color = new Color(0, 0, 0, overlayAlpha);
 	}
 
 	private void Update()
 	{
-		Debug.Log(Time.deltaTime);
 		if (gameObject.layer == 4)
-		{
-			overlayAlpha += 0.0000001f;
-			overlayAlpha = Mathf.Clamp(overlayAlpha, 0.0f, 1.0f);
-			overlay.color = new Color(0, 0, 0, overlayAlpha);
-		}
+			SetOverlayAlpha(-0.0000001f);
 		else
-		{
-			overlayAlpha += Time.deltaTime * 0.01f / memoryPersistance;
-			overlayAlpha = Mathf.Clamp(overlayAlpha, 0.0f, 1.0f);
-			overlay.color = new Color(0, 0, 0, overlayAlpha);
-		}
+			SetOverlayAlpha(-Time.deltaTime * 0.1f / memoryPersistence);
 
 		if (overlayAlpha == 1.0f)
 			isWater = false;
+
+		heatOverlay.color = heatMapGradient.Evaluate(heatScale);
 	}
 
 	public void Explore()
@@ -52,7 +52,7 @@ public class Cell : MonoBehaviour
 			{
 				neighbour.isWater = true;
 				neighbour.Explore();
-				neighbour.IncreaseMemoryPersistance();
+				neighbour.IncreaseMemoryPersistence();
 			}
 			else if (neighbour.gameObject.layer != 4)
 			{
@@ -63,20 +63,44 @@ public class Cell : MonoBehaviour
 
 	private void SetOverlayAlpha(float value)
 	{
-		overlayAlpha = Mathf.Clamp(overlayAlpha - value, 0.0f, 1.0f);
+		overlayAlpha -= value;
+		overlayAlpha = Mathf.Clamp(overlayAlpha, 0.0f, 1.0f);
 		overlay.color = new Color(0, 0, 0, overlayAlpha);
 	}
 
-	public void IncreaseMemoryPersistance()
+	public void IncreaseMemoryPersistence()
 	{
-		memoryPersistance += 0.1f;
+		memoryPersistence += Time.deltaTime * learnRate;
 		foreach (Cell neighbour in neighbours)
-			neighbour.IncreasePersistanceAsNeighbour();
+			neighbour.IncreasePersistenceAsNeighbour();
 	}
 
-	private void IncreasePersistanceAsNeighbour()
+	private void IncreasePersistenceAsNeighbour()
 	{
-		memoryPersistance += 0.05f;
+		memoryPersistence += Time.deltaTime * learnRate / 2;
+	}
+
+	public void IncreaseHeatScale()
+	{
+		heatScale += heatRate;
+		heatScale = Mathf.Clamp(heatScale, 0.0f, 1.0f);
+
+		foreach (Cell neighbour in neighbours)
+			neighbour.IncreaseHeatScaleAsNeighbour();
+	}
+
+	public void IncreaseHeatScaleAsNeighbour()
+	{
+		heatScale += heatRate / 2;
+		heatScale = Mathf.Clamp(heatScale, 0.0f, 1.0f);
+	}
+
+	public void ResetCell()
+	{
+		overlayAlpha = 1.0f;
+		heatScale = 0.0f;
+		memoryPersistence = 1.0f;
+		isWater = false;
 	}
 
 	#region OnGenerationMethods

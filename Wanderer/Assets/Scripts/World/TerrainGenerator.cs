@@ -31,6 +31,24 @@ public class TerrainGenerator : MonoBehaviour
         GenerateMap();
     }
 
+	private void Update()
+	{
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hitInfo = new RaycastHit();
+            bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
+
+            if (hit)
+            {
+                if (hitInfo.transform.gameObject.CompareTag("Terrain"))
+                {
+                    Cell cell = hitInfo.transform.gameObject.GetComponent<Cell>();
+                    Debug.Log($"Index :[{cell.Index.Item1}, {cell.Index.Item2}]   Memory Persistance: {cell.MemoryPersistence}");
+                }
+            }
+        }
+	}
+
 	private void PopulateWithCells()
     {
         // Height
@@ -101,6 +119,13 @@ public class TerrainGenerator : MonoBehaviour
                     if (x != w || y != h)
                         _cells[w, h].gameObject.GetComponent<Cell>().AddNeighbour(_cells[x, y].gameObject.GetComponent<Cell>());
         }
+    }
+
+	public void ResetTerrain()
+	{
+        for (int h = 0; h < DIMENSION; h++)
+            for (int w = 0; w < DIMENSION; w++)
+                _cells[w, h].GetComponent<Cell>().ResetCell();
     }
 }
 

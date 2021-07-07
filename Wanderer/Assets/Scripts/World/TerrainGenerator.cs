@@ -10,9 +10,9 @@ public class TerrainGenerator : MonoBehaviour
     private NavMeshSurface navMeshSurface;
     private const int DIMENSION = 50;
     private GameObject[,] _cells = new GameObject[DIMENSION, DIMENSION];
+    public GameObject[,] Cells => _cells;
 
     private float cellHalfLength;
-    public bool generated = false;
     private bool generatingMap = false;
 
     // Noise Map variables
@@ -29,10 +29,9 @@ public class TerrainGenerator : MonoBehaviour
         noiseMap = new float[DIMENSION, DIMENSION];
         PopulateWithCells();
         GenerateMap();
-        generated = true;
     }
 
-    private void PopulateWithCells()
+	private void PopulateWithCells()
     {
         // Height
         for (int h = 0; h < DIMENSION; h++)
@@ -40,40 +39,47 @@ public class TerrainGenerator : MonoBehaviour
             // Width
             for (int w = 0; w < DIMENSION; w++)
             {
-                float x = cellHalfLength * (-DIMENSION + 2*w + 1);
-                float z = cellHalfLength * (DIMENSION - 2*h - 1);
-                _cells[w, h] = Instantiate(_cellPrefab, new Vector3(x, 0, z), Quaternion.identity, transform);
+                float x = cellHalfLength * (-DIMENSION + 2 * w + 1);
+                float z = cellHalfLength * (DIMENSION - 2 * h - 1);
+                GameObject cell = Instantiate(_cellPrefab, new Vector3(x, 0, z), Quaternion.identity, transform);
+                cell.GetComponent<Cell>().SetIndex(w, h);
+                _cells[w, h] = cell;
             }
         }
+
+        for (int h = 0; h < DIMENSION; h++)
+            for (int w = 0; w < DIMENSION; w++)
+                SetNeighbours(w, h);
     }
 
-    public void GenerateMap()
+    private void GenerateMap()
     {
         if (!generatingMap)
         {
             generatingMap = true;
             noiseMap = Noise.GenerateNoiseMap(DIMENSION, DIMENSION, Random.Range(0, 1000));
-            ColorMapTerrain();
+            MapTerrain();
             BakeNavMesh();
             generatingMap = false;
         }
     }
 
-    private void ColorMapTerrain()
+    private void MapTerrain()
     {
         for (int h = 0; h < DIMENSION; h++)
         {
             for (int w = 0; w < DIMENSION; w++)
             {
-                _cells[w, h].layer = 8;
+                // Default layer
+                _cells[w, h].layer = 8; 
                 float currentHeight = noiseMap[w, h];
                 for (int i = 0; i < regions.Length; i++)
                 {
                     if (currentHeight <= regions[i].height)
                     {
-                        _cells[w, h].GetComponent<Cell>().SetColor(regions[i].color);
+                        _cells[w, h].GetComponent<Cell>().SetRegion(regions[i].color);
                         if (currentHeight <= regions[0].height)
-                            _cells[w, h].layer = 4;
+                            _cells[w, h].layer = 4; // Water layer
                         break;
                     }
                 }
@@ -81,9 +87,20 @@ public class TerrainGenerator : MonoBehaviour
         }
     }
 
-    public void BakeNavMesh()
+    private void BakeNavMesh()
     {
         navMeshSurface.BuildNavMesh();
+    }
+
+    private void SetNeighbours(int w, int h)
+    {
+        if (DIMENSION > 0)
+        {
+            for (int y = Mathf.Max(0, h - 1); y <= Mathf.Min(h + 1, DIMENSION - 1); y++)
+                for (int x = Mathf.Max(0, w - 1); x <= Mathf.Min(w + 1, DIMENSION - 1); x++)
+                    if (x != w || y != h)
+                        _cells[w, h].gameObject.GetComponent<Cell>().AddNeighbour(_cells[x, y].gameObject.GetComponent<Cell>());
+        }
     }
 }
 

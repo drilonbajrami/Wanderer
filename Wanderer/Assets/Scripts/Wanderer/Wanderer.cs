@@ -6,12 +6,13 @@ using UnityEngine.AI;
 public class Wanderer : MonoBehaviour
 {
     private NavMeshAgent _agent;
+    private GameObject[,] _memoryMap;
 
     void Start()
     {
         _agent = gameObject.GetComponent<NavMeshAgent>();
-
-        Time.timeScale = 20;
+        _memoryMap = GameObject.FindGameObjectWithTag("Terrain").GetComponent<TerrainGenerator>().Cells;
+        //Time.timeScale = 10;
     }
 
     void Update()
@@ -47,4 +48,14 @@ public class Wanderer : MonoBehaviour
         NavMesh.SamplePosition(randomDirection, out navHit, distance, -1);
         return navHit.position;
     }
+
+	public void OnTriggerEnter(Collider other)
+	{
+        other.gameObject.GetComponent<Cell>().Explore();
+	}
+
+	public void OnTriggerStay(Collider other)
+	{
+        other.gameObject.GetComponent<Cell>().IncreaseMemoryPersistance();
+	}
 }

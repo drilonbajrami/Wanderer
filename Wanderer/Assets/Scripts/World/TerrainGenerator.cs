@@ -33,20 +33,20 @@ public class TerrainGenerator : MonoBehaviour
 
 	private void Update()
 	{
-        if (Input.GetMouseButtonDown(0))
-        {
-            RaycastHit hitInfo = new RaycastHit();
-            bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
+		//if (Input.GetMouseButtonDown(0))
+		//{
+		//	RaycastHit hitInfo = new RaycastHit();
+		//	bool hit = Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hitInfo);
 
-            if (hit)
-            {
-                if (hitInfo.transform.gameObject.CompareTag("Terrain"))
-                {
-                    Cell cell = hitInfo.transform.gameObject.GetComponent<Cell>();
-                    Debug.Log($"Index :[{cell.Index.Item1}, {cell.Index.Item2}]   Memory Persistance: {cell.MemoryPersistence}");
-                }
-            }
-        }
+		//	if (hit)
+		//	{
+		//		if (hitInfo.transform.gameObject.CompareTag("Terrain"))
+		//		{
+		//			Cell cell = hitInfo.transform.gameObject.GetComponent<Cell>();
+		//			Debug.Log($"Index :[{cell.Index.Item1}, {cell.Index.Item2}]   Memory Persistance: {cell.MemoryPersistence}");
+		//		}
+		//	}
+		//}
 	}
 
 	private void PopulateWithCells()

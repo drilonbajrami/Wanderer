@@ -12,6 +12,7 @@ public class Cell : MonoBehaviour
 	private SpriteRenderer overlay;
 	private SpriteRenderer heatOverlay;
 	private List<Cell> neighbours = new List<Cell>();
+	public List<Cell> Neighbours => neighbours;
 
 	private float overlayAlpha = 1.0f;
 	private float heatScale = 0.0f;
@@ -20,8 +21,8 @@ public class Cell : MonoBehaviour
 	[HideInInspector] public bool isWater = false;
 	public float MemoryPersistence => memoryPersistence;
 
-	private float learnRate = 30.0f;
-	private float heatRate = 0.0003f;
+	private readonly float learnRate = 30.0f;
+	private readonly float heatRate = 0.0003f;
 
 	private void Start()
 	{
@@ -32,10 +33,13 @@ public class Cell : MonoBehaviour
 
 	private void Update()
 	{
-		if (gameObject.layer == 4)
-			SetOverlayAlpha(-0.0000001f);
-		else
-			SetOverlayAlpha(-Time.deltaTime * 0.1f / memoryPersistence);
+		if (memoryPersistence < 1000.0f)
+		{
+			if (gameObject.layer == 4)
+				SetOverlayAlpha(-0.0000001f);
+			else
+				SetOverlayAlpha(-Time.deltaTime * 0.25f / memoryPersistence);
+		}
 
 		if (overlayAlpha == 1.0f)
 			isWater = false;
